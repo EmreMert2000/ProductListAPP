@@ -34,11 +34,10 @@ class DatabaseHelper {
       )
     ''');
   }
-}
 
-Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-  if (oldVersion < 2) {
-    await db.execute('''
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
         CREATE TABLE transactions (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           companyName TEXT NOT NULL,
@@ -47,36 +46,37 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
           date TEXT NOT NULL
         )
       ''');
+    }
   }
-}
 
-Future<int> insertProduct(Product product) async {
-  final db = await instance.database;
-  return await db.insert('products', product.toMap());
-}
+  Future<int> insertProduct(Product product) async {
+    final db = await DatabaseHelper.instance.database;
+    return await db.insert('products', product.toMap());
+  }
 
-Future<List<Product>> fetchProducts() async {
-  final db = await instance.database;
-  final maps = await db.query('products');
-  return maps.map((map) => Product.fromMap(map)).toList();
-}
+  Future<List<Product>> fetchProducts() async {
+    final db = await DatabaseHelper.instance.database;
+    final maps = await db.query('products');
+    return maps.map((map) => Product.fromMap(map)).toList();
+  }
 
-Future<int> deleteProduct(int id) async {
-  final db = await instance.database;
-  return await db.delete('products', where: 'id = ?', whereArgs: [id]);
-}
+  Future<int> deleteProduct(int id) async {
+    final db = await DatabaseHelper.instance.database;
+    return await db.delete('products', where: 'id = ?', whereArgs: [id]);
+  }
 
-Future<void> updateProduct(Product updatedProduct) async {
-  final db = await database;
-  await db.update(
-    'products',
-    updatedProduct.toMap(),
-    where: 'id = ?',
-    whereArgs: [updatedProduct.id],
-  );
-}
+  Future<void> updateProduct(Product updatedProduct) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.update(
+      'products',
+      updatedProduct.toMap(),
+      where: 'id = ?',
+      whereArgs: [updatedProduct.id],
+    );
+  }
 
-Future<void> clearProducts() async {
-  final db = await instance.database;
-  await db.delete('products');
+  Future<void> clearProducts() async {
+    final db = await DatabaseHelper.instance.database;
+    await db.delete('products');
+  }
 }
