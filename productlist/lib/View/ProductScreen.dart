@@ -10,7 +10,12 @@ class ProductScreen extends StatelessWidget {
       create: (_) => ProductViewModel()..fetchProducts(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Ürünler'),
+          title: Text(
+            'Ürünler',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.blueAccent,
         ),
         body: Consumer<ProductViewModel>(
           builder: (context, viewModel, _) {
@@ -22,9 +27,14 @@ class ProductScreen extends StatelessWidget {
                     onChanged: viewModel.filterProducts,
                     decoration: InputDecoration(
                       labelText: 'Ürün Ara',
-                      prefixIcon: Icon(Icons.search),
+                      prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Colors.blueAccent),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Colors.blueAccent),
                       ),
                     ),
                   ),
@@ -32,49 +42,69 @@ class ProductScreen extends StatelessWidget {
                 Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('ID')),
-                        DataColumn(label: Text('Ürün Adı')),
-                        DataColumn(label: Text('Adet')),
-                        DataColumn(label: Text('Fiyat')),
-                        DataColumn(label: Text('İşlemler')),
-                      ],
-                      rows: viewModel.products.map((product) {
-                        return DataRow(cells: [
-                          DataCell(Text(product.id?.toString() ?? 'N/A')),
-                          DataCell(Text(product.name)),
-                          DataCell(Text(product.quantity.toString())),
-                          DataCell(
-                              Text('${product.price.toStringAsFixed(2)} ₺')),
-                          DataCell(
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.edit, color: Colors.red),
-                                  onPressed: () {
-                                    _showEditProductDialog(
-                                        context, product, viewModel);
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () =>
-                                      viewModel.deleteProduct(product.id!),
-                                ),
-                              ],
+                    child: Card(
+                      margin: EdgeInsets.all(16.0),
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      child: DataTable(
+                        headingRowColor:
+                            MaterialStateProperty.all(Colors.blueAccent[100]),
+                        columns: const [
+                          DataColumn(label: Text('ID')),
+                          DataColumn(label: Text('Ürün Adı')),
+                          DataColumn(label: Text('Adet')),
+                          DataColumn(label: Text('Fiyat')),
+                          DataColumn(label: Text('İşlemler')),
+                        ],
+                        rows: viewModel.products.map((product) {
+                          return DataRow(cells: [
+                            DataCell(Text(product.id?.toString() ?? 'N/A')),
+                            DataCell(Text(product.name)),
+                            DataCell(Text(product.quantity.toString())),
+                            DataCell(
+                                Text('${product.price.toStringAsFixed(2)} ₺')),
+                            DataCell(
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.edit,
+                                        color: Colors.blueAccent),
+                                    onPressed: () {
+                                      viewmodel._showEditProductDialog(
+                                          context, product, viewModel);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete,
+                                        color: Colors.redAccent),
+                                    onPressed: () =>
+                                        viewModel.deleteProduct(product.id!),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ]);
-                      }).toList(),
+                          ]);
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed: () => _showAddProductDialog(context),
-                    child: Text('Ürün Ekle'),
+                    icon: Icon(Icons.add, color: Colors.white),
+                    label: Text('Ürün Ekle'),
+                    style: ElevatedButton.styleFrom(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      backgroundColor: Colors.blueAccent,
+                    ),
                   ),
                 ),
               ],
@@ -98,6 +128,9 @@ void _showAddProductDialog(BuildContext context) {
 
       return AlertDialog(
         title: Text('Yeni Ürün Ekle'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -120,9 +153,12 @@ void _showAddProductDialog(BuildContext context) {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('İptal'),
+            child: Text(
+              'İptal',
+              style: TextStyle(color: Colors.redAccent),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               final name = _nameController.text.trim();
               final quantity =
@@ -142,74 +178,6 @@ void _showAddProductDialog(BuildContext context) {
               }
             },
             child: Text('Ekle'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-void _showEditProductDialog(
-    BuildContext context, Product product, ProductViewModel viewModel) {
-  final _nameController = TextEditingController(text: product.name);
-  final _quantityController =
-      TextEditingController(text: product.quantity.toString());
-  final _priceController =
-      TextEditingController(text: product.price.toString());
-
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        title: Text('Ürünü Düzenle'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Ürün Adı'),
-            ),
-            TextField(
-              controller: _quantityController,
-              decoration: InputDecoration(labelText: 'Adet'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _priceController,
-              decoration: InputDecoration(labelText: 'Fiyat'),
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text('İptal'),
-          ),
-          TextButton(
-            onPressed: () {
-              final name = _nameController.text.trim();
-              final quantity =
-                  int.tryParse(_quantityController.text.trim()) ?? 0;
-              final price =
-                  double.tryParse(_priceController.text.trim()) ?? 0.0;
-
-              if (name.isNotEmpty && quantity > 0 && price > 0) {
-                final updatedProduct = Product(
-                  id: product.id,
-                  name: name,
-                  quantity: quantity,
-                  price: price,
-                );
-                viewModel.editProduct(updatedProduct);
-                Navigator.pop(dialogContext);
-              } else {
-                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  SnackBar(content: Text('Lütfen geçerli değerler girin')),
-                );
-              }
-            },
-            child: Text('Güncelle'),
           ),
         ],
       );
