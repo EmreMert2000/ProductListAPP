@@ -72,7 +72,7 @@ class ProductScreen extends StatelessWidget {
                                     icon: Icon(Icons.edit,
                                         color: Colors.blueAccent),
                                     onPressed: () {
-                                      viewmodel._showEditProductDialog(
+                                      _showEditProductDialog(
                                           context, product, viewModel);
                                     },
                                   ),
@@ -114,73 +114,146 @@ class ProductScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-void _showAddProductDialog(BuildContext context) {
-  final _nameController = TextEditingController();
-  final _quantityController = TextEditingController();
-  final _priceController = TextEditingController();
+  // Ürün ekleme için dialog
+  void _showAddProductDialog(BuildContext context) {
+    final _nameController = TextEditingController();
+    final _quantityController = TextEditingController();
+    final _priceController = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      final viewModel = Provider.of<ProductViewModel>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final viewModel = Provider.of<ProductViewModel>(context, listen: false);
 
-      return AlertDialog(
-        title: Text('Yeni Ürün Ekle'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Ürün Adı'),
+        return AlertDialog(
+          title: Text('Yeni Ürün Ekle'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Ürün Adı'),
+              ),
+              TextField(
+                controller: _quantityController,
+                decoration: InputDecoration(labelText: 'Adet'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _priceController,
+                decoration: InputDecoration(labelText: 'Fiyat'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'İptal',
+                style: TextStyle(color: Colors.redAccent),
+              ),
             ),
-            TextField(
-              controller: _quantityController,
-              decoration: InputDecoration(labelText: 'Adet'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _priceController,
-              decoration: InputDecoration(labelText: 'Fiyat'),
-              keyboardType: TextInputType.number,
+            ElevatedButton(
+              onPressed: () {
+                final name = _nameController.text.trim();
+                final quantity =
+                    int.tryParse(_quantityController.text.trim()) ?? 0;
+                final price =
+                    double.tryParse(_priceController.text.trim()) ?? 0.0;
+
+                if (name.isNotEmpty && quantity > 0 && price > 0) {
+                  viewModel.addProduct(
+                    Product(name: name, quantity: quantity, price: price),
+                  );
+                  Navigator.pop(dialogContext);
+                } else {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(content: Text('Lütfen geçerli değerler girin')),
+                  );
+                }
+              },
+              child: Text('Ekle'),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'İptal',
-              style: TextStyle(color: Colors.redAccent),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final name = _nameController.text.trim();
-              final quantity =
-                  int.tryParse(_quantityController.text.trim()) ?? 0;
-              final price =
-                  double.tryParse(_priceController.text.trim()) ?? 0.0;
+        );
+      },
+    );
+  }
 
-              if (name.isNotEmpty && quantity > 0 && price > 0) {
-                viewModel.addProduct(
-                  Product(name: name, quantity: quantity, price: price),
-                );
-                Navigator.pop(dialogContext);
-              } else {
-                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  SnackBar(content: Text('Lütfen geçerli değerler girin')),
-                );
-              }
-            },
-            child: Text('Ekle'),
+  // Ürün düzenleme için dialog
+  void _showEditProductDialog(
+      BuildContext context, Product product, ProductViewModel viewModel) {
+    final _nameController = TextEditingController(text: product.name);
+    final _quantityController =
+        TextEditingController(text: product.quantity.toString());
+    final _priceController =
+        TextEditingController(text: product.price.toString());
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Ürün Düzenle'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
           ),
-        ],
-      );
-    },
-  );
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Ürün Adı'),
+              ),
+              TextField(
+                controller: _quantityController,
+                decoration: InputDecoration(labelText: 'Adet'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _priceController,
+                decoration: InputDecoration(labelText: 'Fiyat'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text('İptal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = _nameController.text.trim();
+                final quantity =
+                    int.tryParse(_quantityController.text.trim()) ?? 0;
+                final price =
+                    double.tryParse(_priceController.text.trim()) ?? 0.0;
+
+                if (name.isNotEmpty && quantity > 0 && price > 0) {
+                  final updatedProduct = Product(
+                    id: product.id,
+                    name: name,
+                    quantity: quantity,
+                    price: price,
+                  );
+                  viewModel.editProduct(updatedProduct);
+                  Navigator.pop(dialogContext);
+                } else {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(content: Text('Lütfen geçerli değerler girin')),
+                  );
+                }
+              },
+              child: Text('Kaydet'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
