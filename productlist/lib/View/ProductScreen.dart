@@ -11,7 +11,7 @@ class ProductScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Ürünler',
+            'NZMYP Ürün Yönetimi',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
